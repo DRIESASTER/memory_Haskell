@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 
@@ -5,6 +6,7 @@ import System.Random
 import System.Random.Shuffle (shuffle')
 
 import Data.Fixed (mod')
+import Control.Applicative (Alternative(empty))
 
 -- Geeft de richting van een zet aan.
 type Direction = (Int, Int)
@@ -18,7 +20,11 @@ type Coordinate = (Int, Int)
 
 -- Representatie van een kaart. Een kaart heeft een status, 
 -- een kleur en een positie.
-type Card = (Coordinate, Color, CardStatus)
+data Card = Card {
+    cardCoordinate::Coordinate,
+    cardColor::Color,
+    cardStatus::CardStatus} deriving Show
+
 
 -- Representatie van het speelveld.
 data Board = Board {
@@ -67,7 +73,6 @@ amountOfCards   | even n    = n
 -- Het Gloss venster
 window :: Display
 window = InWindow "Memory" (width * scaling, height * scaling) windowPosition
-
 -- Het initiele speelveld.
 initBoard :: Board
 initBoard = Board {
@@ -75,7 +80,6 @@ initBoard = Board {
     turned = [],
     selector = (0, 0)
 }
-
 ----------------------------------------------------------------------
 -- Vanaf hier zal het nodig zijn om de functies aan te vullen.
 -- De functies die je moet aanvullen zijn steeds gemarkeerd met
@@ -84,35 +88,39 @@ initBoard = Board {
 
 -- De mogelijke richtingen van de selector.
 left, right, up, down :: Direction
-left  = undefined
-right = undefined
-up    = undefined
-down  = undefined
+left  = (-1,0)
+right = (1,0)
+up    = (0,1)
+down  = (0,-1)
 
 -- Controleer of twee kaarten dezelfde kleur hebben.
 match :: Card -> Card -> Bool
-match card1 card2 = undefined
+match card1 card2 = cardColor card1 == cardColor card2
 
 -- Zoek een kaart binnen een lijst van kaarten op basis van een positie.
 -- Wanneer een kaart gevonden is, wordt deze teruggegeven. Anders wordt
 -- een error teruggegeven.
 find :: Coordinate -> [Card] -> Card
-find target cards = undefined
+find target cards
+    | null cards = error "not found"
+    | cardCoordinate (head cards) == target = head cards
+    | otherwise = find target (drop 1 cards)
+
 
 -- Geef een permutatie van een gegeven lijst terug.
 -- Hint: Kijk zeker eens naar de System.Random en 
 --       System.Random.Shuffle bibliotheken.
 shuffleList :: [a] -> [a]
-shuffleList l = undefined
+shuffleList l = shuffle' l (length l) (mkStdGen seed)
 
 -- Genereer een lijst met n verschillende kleuren.
 -- Hint: Je kan gebruikmaken van de generateColor-functie.
 generateColors :: Int -> [Color]
-generateColors n = undefined
+generateColors n = [generateColor x | x <- take n $ randomRs(0.0,360.0) (mkStdGen seed)]
 
 -- Genereer een lijst van n kaarten (n/2 kleurenparen).
 generateShuffledCards :: Int -> [Card]
-generateShuffledCards n = undefined
+generateShuffledCards n = [Card {cardCoordinate = (fst(randomR(1,width) gen), fst(randomR(1,height) gen)), cardColor = generateColor 2 , cardStatus = Hidden} | x <- [1..n]] where gen = mkStdGen seed
 
 -- Controleer of een positie op het spelbord een kaart bevat.
 hasCard :: Coordinate -> Bool
@@ -121,7 +129,7 @@ hasCard (x, y) = undefined
 -- Controleer of de selector vanaf een gegeven locatie in een 
 -- gegeven richting kan bewegen.
 canMove :: Coordinate -> Direction -> Bool
-canMove coord direction = undefined
+canMove coord direction = fst coord + fst direction < width && fst coord + fst direction >= 0 && snd coord + snd direction < height && snd coord + snd direction >= 0
 
 -- Beweeg de selector in een gegeven richting.
 move :: Board -> Direction -> Board
@@ -155,7 +163,7 @@ resetTurned board = undefined
 
 -- Bereken het volgende bord op basis van de omgedraaide kaarten.
 -- Hint: We hebben de drie gevallen voor deze functie al voorzien.
-nextBoard :: Board -> Board 
+nextBoard :: Board -> Board
 nextBoard b@Board{ turned = [] }         = undefined
 nextBoard b@Board{ turned = [c1] }       = undefined
 nextBoard b@Board{ turned = [c1, c2] }   = undefined
@@ -192,12 +200,12 @@ isKey _  _                                   = False
 
 -- Handel alle toetsaanslagen af.
 -- Hint: Je kan gebruikmaken van de isKey hulpfunctie.
-handleInput :: Event -> Board -> Board 
+handleInput :: Event -> Board -> Board
 handleInput ev board = undefined
 
 -- Startpunt
 main :: IO ()
-main =  play window white fps initBoard render handleInput step
+main = play window white fps initBoard render handleInput step
 
 ----------------------------------------------------------------------
 -- Hieronder staan een aantal hulpfuncties die je kan gebruiken.
@@ -217,12 +225,13 @@ hslToRgb (h, s, l) = (r + m, g + m, b + m)
         c = (1 - abs (2 * l - 1)) * s
         x = c * (1 - abs (h' `mod'` 2 - 1))
         m = l - c / 2
-        getRGB h | h < 1     = (c, x, 0)
-                 | h < 2     = (x, c, 0)
-                 | h < 3     = (0, c, x)
-                 | h < 4     = (0, x, c)
-                 | h < 5     = (x, 0, c)
-                 | otherwise = (c, 0, x)
+        getRGB h 
+            | h < 1     = (c, x, 0)
+            | h < 2     = (x, c, 0)
+            | h < 3     = (0, c, x)
+            | h < 4     = (0, x, c)
+            | h < 5     = (x, 0, c)
+            | otherwise = (c, 0, x)
         (r, g, b) = getRGB h'
 
 -- Genereer een kleur op basis van een hue-waarde [0 - 360].
