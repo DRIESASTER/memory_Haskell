@@ -119,8 +119,11 @@ generateColors :: Int -> [Color]
 generateColors n = [generateColor x | x <- take n $ randomRs(0.0,360.0) (mkStdGen seed)]
 
 -- Genereer een lijst van n kaarten (n/2 kleurenparen).
+-- coord nog doen, rest werkt wel al
 generateShuffledCards :: Int -> [Card]
-generateShuffledCards n = [Card {cardCoordinate = (fst(randomR(1,width) gen), fst(randomR(1,height) gen)), cardColor = generateColor 2 , cardStatus = Hidden} | x <- [1..n]] where gen = mkStdGen seed
+generateShuffledCards n = shuffleList [Card {cardCoordinate = (0,0), cardColor = generateColors (div n 2)!! div (x-1) 2 , cardStatus = Hidden} | x <- [1..n]]
+
+
 
 -- Controleer of een positie op het spelbord een kaart bevat.
 hasCard :: Coordinate -> Bool
