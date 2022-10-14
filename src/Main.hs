@@ -211,7 +211,9 @@ renderSelector coord = rectangleWire (convert (fst coord) width) (convert (snd c
 
 -- Render een kaart.
 renderCard :: Card -> Picture
-renderCard card = renderColoredSquare scaling (cardColor card)
+renderCard card
+    | cardStatus card == Hidden = renderColoredSquare scaling (makeColor 0 0 0 0.75)
+    | otherwise = renderColoredSquare scaling (cardColor card)
 
 -- Render alle kaarten.
 renderCards :: [Card] -> Picture
