@@ -121,7 +121,16 @@ generateColors n = [generateColor x | x <- take n $ randomRs(0.0,360.0) (mkStdGe
 -- Genereer een lijst van n kaarten (n/2 kleurenparen).
 -- coord nog doen, rest werkt wel al
 generateShuffledCards :: Int -> [Card]
-generateShuffledCards n = shuffleList [Card {cardCoordinate = (0,0), cardColor = generateColors (div n 2)!! div (x-1) 2 , cardStatus = Hidden} | x <- [1..n]]
+generateShuffledCards n = shuffleList $ giveCoordinates [Card {cardCoordinate = (1,0), cardColor = generateColors (div n 2 + 1)!! div x 2 , cardStatus = Hidden} | x <- [0..(n-1)]]
+
+giveCoordinates :: [Card] -> [Card]
+giveCoordinates cards = [(cards!!i){cardCoordinate = coords!!i} | i <- [0..(length cards-1)]] where coords = generateCoords 1 1 []
+
+generateCoords :: Int -> Int -> [Coordinate] -> [Coordinate]
+generateCoords x y coordinates
+    | x > width && y == height = coordinates
+    | x > width = generateCoords 1 (y+1) coordinates
+    | otherwise = generateCoords (x+1) y (coordinates ++ [(x, y)])
 
 
 
@@ -170,7 +179,7 @@ flipCard :: Coordinate -> Board -> Board
 flipCard target board = undefined
 
 flipMultipleCards :: [Coordinate] -> Board -> Board
-flipMultipleCards [c1] board = flipCard (head l) board
+flipMultipleCards [c1] board = flipCard c1 board
 flipMultipleCards l board = flipMultipleCards (drop 1 l) (flipCard (head l) board)
 
 -- Reset de laatste omgedraaide kaarten terug naar de `Hidden` status.
@@ -193,23 +202,24 @@ convert location axis = 0.0
 
 -- Render een vierkant met een gegeven kleur en grootte.
 renderColoredSquare :: Int -> Color -> Picture
-renderColoredSquare size c = color c (rectangleSolid (sqrt fromIntegral size) (sqrt fromIntegral size))
+renderColoredSquare size c = color c (rectangleSolid (sqrt $ fromIntegral size) (sqrt $ fromIntegral size))
 
 -- Render de selector.
 renderSelector :: Coordinate -> Picture
-renderSelector coord = undefined
+--gwn ff leeg voorlopig
+renderSelector coord = blank
 
 -- Render een kaart.
 renderCard :: Card -> Picture
-renderCard card = undefined
+renderCard card = renderColoredSquare scaling (cardColor card)
 
 -- Render alle kaarten.
 renderCards :: [Card] -> Picture
-renderCards = undefined
+renderCards cards = pictures [translate (fromIntegral $ fst(cardCoordinate card - 1)*scaling) (fromIntegral $ snd(cardCoordinate card - 1)*scaling) (renderCard card) | card <- cards]
 
 -- Render het speelveld.
 render :: Board -> Picture
-render board = undefined
+render board = pictures [renderCards (cards board), renderSelector (0,0)]
 
 -- Hulpfunctie die nagaat of een bepaalde toets is ingedrukt.
 isKey :: SpecialKey -> Event -> Bool
@@ -219,7 +229,7 @@ isKey _  _                                   = False
 -- Handel alle toetsaanslagen af.
 -- Hint: Je kan gebruikmaken van de isKey hulpfunctie.
 handleInput :: Event -> Board -> Board
-handleInput ev board = undefined
+handleInput ev board = board
 
 -- Startpunt
 main :: IO ()
