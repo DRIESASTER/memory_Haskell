@@ -124,12 +124,12 @@ generateShuffledCards :: Int -> [Card]
 generateShuffledCards n = shuffleList $ giveCoordinates [Card {cardCoordinate = (1,0), cardColor = generateColors (div n 2 + 1)!! div x 2 , cardStatus = Hidden} | x <- [0..(n-1)]]
 
 giveCoordinates :: [Card] -> [Card]
-giveCoordinates cards = [(cards!!i){cardCoordinate = coords!!i} | i <- [0..(length cards-1)]] where coords = generateCoords 1 1 []
+giveCoordinates cards = [(cards!!i){cardCoordinate = coords!!i} | i <- [0..(length cards-1)]] where coords = generateCoords 0 0 []
 
 generateCoords :: Int -> Int -> [Coordinate] -> [Coordinate]
 generateCoords x y coordinates
-    | x > width && y == height = coordinates
-    | x > width = generateCoords 1 (y+1) coordinates
+    | x == width && y == (height-1) = coordinates
+    | x == width = generateCoords 0 (y+1) coordinates
     | otherwise = generateCoords (x+1) y (coordinates ++ [(x, y)])
 
 
@@ -198,11 +198,11 @@ nextBoard b@Board{ turned = [c1, c2] }
 -- Zet een positie op het bord om naar een positie op het scherm.
 -- Hint: hou zeker rekening met het coordinatensysteem van Gloss.
 convert :: Int -> Int -> Float
-convert location axis = 0.0
+convert location axis =  fromIntegral((location - div (axis) 2) * (scaling + 10))
 
 -- Render een vierkant met een gegeven kleur en grootte.
 renderColoredSquare :: Int -> Color -> Picture
-renderColoredSquare size c = color c (rectangleSolid (sqrt $ fromIntegral size) (sqrt $ fromIntegral size))
+renderColoredSquare size c = color c (rectangleSolid (fromIntegral size) (fromIntegral size))
 
 -- Render de selector.
 renderSelector :: Coordinate -> Picture
@@ -215,7 +215,7 @@ renderCard card = renderColoredSquare scaling (cardColor card)
 
 -- Render alle kaarten.
 renderCards :: [Card] -> Picture
-renderCards cards = pictures [translate (fromIntegral $ fst(cardCoordinate card - 1)*scaling) (fromIntegral $ snd(cardCoordinate card - 1)*scaling) (renderCard card) | card <- cards]
+renderCards cards = pictures [translate (convert (fst(cardCoordinate card)) width) (convert (snd(cardCoordinate card)) width) (renderCard card) | card <- cards]
 
 -- Render het speelveld.
 render :: Board -> Picture
