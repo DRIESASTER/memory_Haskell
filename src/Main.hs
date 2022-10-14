@@ -116,7 +116,7 @@ shuffleList l = shuffle' l (length l) (mkStdGen seed)
 -- Genereer een lijst met n verschillende kleuren.
 -- Hint: Je kan gebruikmaken van de generateColor-functie.
 generateColors :: Int -> [Color]
-generateColors n = [generateColor x | x <- take n $ randomRs(0.0,360.0) (mkStdGen seed)]
+generateColors n = [generateColor (fromIntegral x) | x <- [0,(div 360 n)..360]]
 
 -- Genereer een lijst van n kaarten (n/2 kleurenparen).
 -- coord nog doen, rest werkt wel al
@@ -219,7 +219,7 @@ renderCards cards = pictures [translate (convert (fst(cardCoordinate card)) widt
 
 -- Render het speelveld.
 render :: Board -> Picture
-render board = pictures [renderCards (cards board), renderSelector (0,0)]
+render board = pictures [renderCards (cards board), renderSelector (selector board)]
 
 -- Hulpfunctie die nagaat of een bepaalde toets is ingedrukt.
 isKey :: SpecialKey -> Event -> Bool
