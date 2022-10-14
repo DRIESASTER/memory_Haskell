@@ -127,7 +127,13 @@ generateShuffledCards n = shuffleList [Card {cardCoordinate = (0,0), cardColor =
 
 -- Controleer of een positie op het spelbord een kaart bevat.
 hasCard :: Coordinate -> Bool
-hasCard (x, y) = undefined
+hasCard (x, y) = hasCardSub (x, y) (cards initBoard)
+
+hasCardSub :: Coordinate -> [Card] -> Bool
+hasCardSub (x, y) l
+    | length l == 0 = False
+    | cardCoordinate (head l) == (x, y) = True
+    | otherwise = hasCardSub (x, y) (drop 1 l)
 
 -- Controleer of de selector vanaf een gegeven locatie in een 
 -- gegeven richting kan bewegen.
@@ -136,49 +142,58 @@ canMove coord direction = fst coord + fst direction < width && fst coord + fst d
 
 -- Beweeg de selector in een gegeven richting.
 move :: Board -> Direction -> Board
-move board direction = undefined
+move board direction = board {selector = (fst(selector board) + fst direction , snd(selector board) + snd direction)}
 
 -- Verander de status van een kaart op een gegeven positie 
 -- wanneer de posities overeenkomen.
 changeCard :: Coordinate -> CardStatus -> Card -> Card
-changeCard c s card = undefined
+changeCard c s card
+    | cardCoordinate card == c = card {cardStatus = s}
+    | otherwise = card
 
 -- Verander de status van een enkele kaart in een reeks van 
 -- kaarten. Deze functie geeft een lijst terug waar de status 
 -- van de kaart is aangepast naar `Shown`.
 showCard :: Coordinate -> [Card] -> [Card]
-showCard target = undefined
+showCard target cards= [card | card <- cards, cardCoordinate card /= target] ++ [changeCard target Shown $ find target cards]
 
 -- Verander de status van een enkele kaart in een reeks van 
 -- kaarten. Deze functie geeft een lijst terug waar de status 
 -- van de kaart is aangepast naar `Hidden`.
 hideCard :: Coordinate -> [Card] -> [Card]
-hideCard target = undefined
+hideCard target cards= [card | card <- cards, cardCoordinate card /= target] ++ [changeCard target Hidden $ find target cards]
 
 -- Draai de kaart op een gegeven positie op het bord om 
 -- als deze nog niet eerder werd omgedraaid.
 flipCard :: Coordinate -> Board -> Board
+-- zoek kaart met find in (turned board) -> error dan moet ge hem nog draaien
 flipCard target board = undefined
+
+flipMultipleCards :: [Coordinate] -> Board -> Board
+flipMultipleCards [c1] board = flipCard (head l) board
+flipMultipleCards l board = flipMultipleCards (drop 1 l) (flipCard (head l) board)
 
 -- Reset de laatste omgedraaide kaarten terug naar de `Hidden` status.
 resetTurned :: Board -> Board
-resetTurned board = undefined
+resetTurned board = flipMultipleCards [cardCoordinate $ cards board!!i | i <- [1..length (cards board)], i >= length (cards board)-1] board
 
 -- Bereken het volgende bord op basis van de omgedraaide kaarten.
 -- Hint: We hebben de drie gevallen voor deze functie al voorzien.
 nextBoard :: Board -> Board
-nextBoard b@Board{ turned = [] }         = undefined
-nextBoard b@Board{ turned = [c1] }       = undefined
-nextBoard b@Board{ turned = [c1, c2] }   = undefined
+nextBoard b@Board{ turned = [] }         = b
+nextBoard b@Board{ turned = [c1] }       = b
+nextBoard b@Board{ turned = [c1, c2] }
+    | cardColor c1 == cardColor c2 = b
+    | otherwise = resetTurned b
 
 -- Zet een positie op het bord om naar een positie op het scherm.
 -- Hint: hou zeker rekening met het coordinatensysteem van Gloss.
 convert :: Int -> Int -> Float
-convert location axis = undefined
+convert location axis = 0.0
 
 -- Render een vierkant met een gegeven kleur en grootte.
 renderColoredSquare :: Int -> Color -> Picture
-renderColoredSquare size c = undefined
+renderColoredSquare size c = color c (rectangleSolid (sqrt fromIntegral size) (sqrt fromIntegral size))
 
 -- Render de selector.
 renderSelector :: Coordinate -> Picture
@@ -228,7 +243,7 @@ hslToRgb (h, s, l) = (r + m, g + m, b + m)
         c = (1 - abs (2 * l - 1)) * s
         x = c * (1 - abs (h' `mod'` 2 - 1))
         m = l - c / 2
-        getRGB h 
+        getRGB h
             | h < 1     = (c, x, 0)
             | h < 2     = (x, c, 0)
             | h < 3     = (0, c, x)
