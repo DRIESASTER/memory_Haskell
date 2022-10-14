@@ -207,7 +207,7 @@ renderColoredSquare size c = color c (rectangleSolid (fromIntegral size) (fromIn
 -- Render de selector.
 renderSelector :: Coordinate -> Picture
 --gwn ff leeg voorlopig
-renderSelector coord = blank
+renderSelector coord = rectangleWire (convert (fst coord) width) (convert (snd coord) height)
 
 -- Render een kaart.
 renderCard :: Card -> Picture
