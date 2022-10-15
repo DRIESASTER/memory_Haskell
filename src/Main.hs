@@ -124,15 +124,10 @@ generateShuffledCards :: Int -> [Card]
 generateShuffledCards n = shuffleList $ giveCoordinates [Card {cardCoordinate = (1,0), cardColor = generateColors (div n 2 + 1)!! div x 2 , cardStatus = Hidden} | x <- [0..(n-1)]]
 
 giveCoordinates :: [Card] -> [Card]
-giveCoordinates cards = [(cards!!i){cardCoordinate = coords!!i} | i <- [0..(length cards-1)]] where coords = generateCoords 0 0 []
+giveCoordinates cards = [(cards!!i){cardCoordinate = coords!!i} | i <- [0..(length cards-1)]] where coords = generateCoords
 
-generateCoords :: Int -> Int -> [Coordinate] -> [Coordinate]
-generateCoords x y coordinates
-    | x == width && y == (height-1) = coordinates
-    | x == width = generateCoords 0 (y+1) coordinates
-    | otherwise = generateCoords (x+1) y (coordinates ++ [(x, y)])
-
-
+generateCoords ::[Coordinate]
+generateCoords = take amountOfCards [(x,y) | x <- [0..(width-1)], y <- [0..(height-1)]]
 
 -- Controleer of een positie op het spelbord een kaart bevat.
 hasCard :: Coordinate -> Bool
@@ -147,11 +142,13 @@ hasCardSub (x, y) l
 -- Controleer of de selector vanaf een gegeven locatie in een 
 -- gegeven richting kan bewegen.
 canMove :: Coordinate -> Direction -> Bool
-canMove coord direction = fst coord + fst direction < width && fst coord + fst direction >= 0 && snd coord + snd direction < height && snd coord + snd direction >= 0
+canMove coord direction = hasCard (fst coord+ fst direction, snd coord + snd direction)
 
 -- Beweeg de selector in een gegeven richting.
 move :: Board -> Direction -> Board
-move board direction = board {selector = (fst(selector board) + fst direction , snd(selector board) + snd direction)}
+move board direction
+    | canMove (selector board) direction == True = board {selector = (fst (selector board) + fst direction, snd (selector board) + snd direction)}
+    | otherwise = board
 
 -- Verander de status van een kaart op een gegeven positie 
 -- wanneer de posities overeenkomen.
@@ -206,22 +203,22 @@ renderColoredSquare size c = color c (rectangleSolid (fromIntegral size) (fromIn
 
 -- Render de selector.
 renderSelector :: Coordinate -> Picture
---gwn ff leeg voorlopig
-renderSelector coord = rectangleWire (convert (fst coord) width) (convert (snd coord) height)
+renderSelector coord = translate (convert (fst coord) width) (convert (snd coord) height) (rectangleSolid (fromIntegral scaling+10) (fromIntegral scaling+10))
+
 
 -- Render een kaart.
 renderCard :: Card -> Picture
 renderCard card
-    | cardStatus card == Hidden = renderColoredSquare scaling (makeColor 0 0 0 0.75)
-    | otherwise = renderColoredSquare scaling (cardColor card)
+    | cardStatus card == Hidden = translate (convert (fst(cardCoordinate card)) width) (convert (snd(cardCoordinate card)) height) (renderColoredSquare scaling (greyN 0.35))
+    | otherwise = translate (convert (fst(cardCoordinate card)) width) (convert (snd(cardCoordinate card)) height) (renderColoredSquare scaling (cardColor card))
 
 -- Render alle kaarten.
 renderCards :: [Card] -> Picture
-renderCards cards = pictures [translate (convert (fst(cardCoordinate card)) width) (convert (snd(cardCoordinate card)) width) (renderCard card) | card <- cards]
+renderCards cards = pictures (map renderCard cards)
 
 -- Render het speelveld.
-render :: Board -> Picture
-render board = pictures [renderCards (cards board), renderSelector (selector board)]
+render :: Board -> Picture 
+render board = pictures [renderSelector (selector board), renderCards (cards board)]
 
 -- Hulpfunctie die nagaat of een bepaalde toets is ingedrukt.
 isKey :: SpecialKey -> Event -> Bool
@@ -231,7 +228,13 @@ isKey _  _                                   = False
 -- Handel alle toetsaanslagen af.
 -- Hint: Je kan gebruikmaken van de isKey hulpfunctie.
 handleInput :: Event -> Board -> Board
-handleInput ev board = board
+handleInput ev board
+    | isKey KeyUp ev = nextBoard (move board up)
+    | isKey KeyDown ev = nextBoard (move board down)
+    | isKey KeyLeft ev = nextBoard (move board left)
+    | isKey KeyRight ev = nextBoard (move board right)
+    | isKey KeyEnter ev = nextBoard (flipCard (selector board) board)
+    | otherwise = board
 
 -- Startpunt
 main :: IO ()
