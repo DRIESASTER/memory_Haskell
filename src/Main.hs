@@ -128,7 +128,6 @@ giveCoordinates cards = [(cards!!i){cardCoordinate = coords!!i} | i <- [0..(leng
 
 generateCoords ::[Coordinate]
 generateCoords = take amountOfCards [(x,y) | x <- [0..(width-1)], y <- [0..(height-1)]]
-
 -- Controleer of een positie op het spelbord een kaart bevat.
 hasCard :: Coordinate -> Bool
 hasCard (x, y) = hasCardSub (x, y) (cards initBoard)
@@ -214,7 +213,7 @@ renderCard card
 
 -- Render alle kaarten.
 renderCards :: [Card] -> Picture
-renderCards cards = pictures (map renderCard cards)
+renderCards cards = pictures [renderCard card | card <- cards]
 
 -- Render het speelveld.
 render :: Board -> Picture 
