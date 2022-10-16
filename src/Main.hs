@@ -100,6 +100,8 @@ match card1 card2 = cardColor card1 == cardColor card2
 -- Zoek een kaart binnen een lijst van kaarten op basis van een positie.
 -- Wanneer een kaart gevonden is, wordt deze teruggegeven. Anders wordt
 -- een error teruggegeven.
+
+
 find :: Coordinate -> [Card] -> Card
 find target cards
     | null cards = error "not found"
@@ -171,8 +173,10 @@ hideCard target cards= [card | card <- cards, cardCoordinate card /= target] ++ 
 -- Draai de kaart op een gegeven positie op het bord om 
 -- als deze nog niet eerder werd omgedraaid.
 flipCard :: Coordinate -> Board -> Board
--- zoek kaart met find in (turned board) -> error dan moet ge hem nog draaien
-flipCard target board = undefined
+-- zoek kaart met find in (turned board) -> error dan moet ge hem nog draaien 
+flipCard target board
+    | cardStatus (find target (cards board)) == Hidden = board{cards = showCard target (cards board), turned = turned board ++ [find target (cards board)]}
+    | otherwise = board
 
 flipMultipleCards :: [Coordinate] -> Board -> Board
 flipMultipleCards [c1] board = flipCard c1 board
@@ -180,15 +184,15 @@ flipMultipleCards l board = flipMultipleCards (drop 1 l) (flipCard (head l) boar
 
 -- Reset de laatste omgedraaide kaarten terug naar de `Hidden` status.
 resetTurned :: Board -> Board
-resetTurned board = flipMultipleCards [cardCoordinate $ cards board!!i | i <- [1..length (cards board)], i >= length (cards board)-1] board
+resetTurned board = board { turned = [], cards = hideCard (cardCoordinate (turned board!!1)) (hideCard (cardCoordinate(head (turned board))) (cards board))}
 
 -- Bereken het volgende bord op basis van de omgedraaide kaarten.
 -- Hint: We hebben de drie gevallen voor deze functie al voorzien.
 nextBoard :: Board -> Board
-nextBoard b@Board{ turned = [] }         = b
-nextBoard b@Board{ turned = [c1] }       = b
+nextBoard b@Board{ turned = [] } = b
+nextBoard b@Board{ turned = [c1] } = b
 nextBoard b@Board{ turned = [c1, c2] }
-    | cardColor c1 == cardColor c2 = b
+    | match c1 c2 = b{turned = []}
     | otherwise = resetTurned b
 
 -- Zet een positie op het bord om naar een positie op het scherm.
@@ -216,7 +220,7 @@ renderCards :: [Card] -> Picture
 renderCards cards = pictures [renderCard card | card <- cards]
 
 -- Render het speelveld.
-render :: Board -> Picture 
+render :: Board -> Picture
 render board = pictures [renderSelector (selector board), renderCards (cards board)]
 
 -- Hulpfunctie die nagaat of een bepaalde toets is ingedrukt.
