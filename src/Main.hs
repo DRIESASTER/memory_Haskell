@@ -38,11 +38,11 @@ data Board = Board {
 
 -- Aantal kaarten op de x-as.
 width :: Int
-width = 4
+width = 3
 
 -- Aantal kaarten op de y-as.
 height :: Int
-height = 5
+height = 3
 
 -- De grootte van een kaart.
 scaling :: Int
