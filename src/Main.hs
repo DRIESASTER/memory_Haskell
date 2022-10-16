@@ -38,11 +38,11 @@ data Board = Board {
 
 -- Aantal kaarten op de x-as.
 width :: Int
-width = 3
+width = 4
 
 -- Aantal kaarten op de y-as.
 height :: Int
-height = 3
+height = 5
 
 -- De grootte van een kaart.
 scaling :: Int
@@ -198,7 +198,7 @@ nextBoard b@Board{ turned = [c1, c2] }
 -- Zet een positie op het bord om naar een positie op het scherm.
 -- Hint: hou zeker rekening met het coordinatensysteem van Gloss.
 convert :: Int -> Int -> Float
-convert location axis =  fromIntegral((location - div (axis) 2) * (scaling + 10))
+convert location axis = (fromIntegral(location) - fromIntegral (axis-1) / 2) * (fromIntegral(scaling+10))
 
 -- Render een vierkant met een gegeven kleur en grootte.
 renderColoredSquare :: Int -> Color -> Picture
