@@ -121,19 +121,18 @@ generateColors :: Int -> [Color]
 generateColors n = [generateColor (fromIntegral x) | x <- [0,(div 360 n)..360]]
 
 -- Genereer een lijst van n kaarten (n/2 kleurenparen).
--- coord nog doen, rest werkt wel al
 generateShuffledCards :: Int -> [Card]
-generateShuffledCards n = shuffleList $ giveCoordinates [Card {cardCoordinate = (1,0), cardColor = generateColors (div n 2 + 1)!! div x 2 , cardStatus = Hidden} | x <- [0..(n-1)]]
+generateShuffledCards n = shuffleList [Card {cardCoordinate = coords!!x, cardColor = generateColors (div n 2 + 1)!! div x 2 , cardStatus = Hidden} | x <- [0..(n-1)]] where coords = generateCoords
 
-giveCoordinates :: [Card] -> [Card]
-giveCoordinates cards = [(cards!!i){cardCoordinate = coords!!i} | i <- [0..(length cards-1)]] where coords = generateCoords
-
+-- genereerd lijst van coordinaten
 generateCoords ::[Coordinate]
 generateCoords = take amountOfCards [(x,y) | x <- [0..(width-1)], y <- [0..(height-1)]]
+
 -- Controleer of een positie op het spelbord een kaart bevat.
 hasCard :: Coordinate -> Bool
 hasCard (x, y) = hasCardSub (x, y) (cards initBoard)
 
+--recursieve methode om te checken of kaart in lijst zit
 hasCardSub :: Coordinate -> [Card] -> Bool
 hasCardSub (x, y) l
     | length l == 0 = False
@@ -173,10 +172,10 @@ hideCard target cards= [card | card <- cards, cardCoordinate card /= target] ++ 
 -- Draai de kaart op een gegeven positie op het bord om 
 -- als deze nog niet eerder werd omgedraaid.
 flipCard :: Coordinate -> Board -> Board
--- zoek kaart met find in (turned board) -> error dan moet ge hem nog draaien 
 flipCard target board
     | cardStatus (find target (cards board)) == Hidden = board{cards = showCard target (cards board), turned = turned board ++ [find target (cards board)]}
     | otherwise = board
+
 
 flipMultipleCards :: [Coordinate] -> Board -> Board
 flipMultipleCards [c1] board = flipCard c1 board
