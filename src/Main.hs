@@ -188,7 +188,7 @@ nextBoard b@Board{ turned = [c1, c2] }
 -- Zet een positie op het bord om naar een positie op het scherm.
 -- Hint: hou zeker rekening met het coordinatensysteem van Gloss.
 convert :: Int -> Int -> Float
-convert location axis = (fromIntegral location - fromIntegral (axis-1) / 2) * fromIntegral(scaling+10)
+convert location axis = (fromIntegral location - fromIntegral (axis-1) / 2) * fromIntegral(scaling+cardInset)
 
 -- Render een vierkant met een gegeven kleur en grootte.
 renderColoredSquare :: Int -> Color -> Picture
