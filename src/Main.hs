@@ -201,8 +201,10 @@ renderSelector coord = translate (convert (fst coord) width) (convert (snd coord
 -- Render een kaart.
 renderCard :: Card -> Picture
 renderCard card
-    | cardStatus card == Hidden = translate (convert (fst(cardCoordinate card)) width) (convert (snd(cardCoordinate card)) height) (renderColoredSquare scaling (greyN 0.35))
-    | otherwise = translate (convert (fst(cardCoordinate card)) width) (convert (snd(cardCoordinate card)) height) (renderColoredSquare scaling (cardColor card))
+    | cardStatus card == Hidden = translate coord1 coord2 (renderColoredSquare scaling (greyN 0.35))
+    | otherwise = translate coord1 coord2 (renderColoredSquare scaling (cardColor card))
+        where   coord1 = convert (fst (cardCoordinate card)) width
+                coord2 = convert (snd (cardCoordinate card)) height
 
 -- Render alle kaarten.
 renderCards :: [Card] -> Picture
