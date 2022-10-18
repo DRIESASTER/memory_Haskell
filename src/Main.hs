@@ -195,6 +195,7 @@ renderColoredSquare :: Int -> Color -> Picture
 renderColoredSquare size c = color c (rectangleSolid (fromIntegral size) (fromIntegral size))
 
 -- Render de selector.
+-- selecotr is een solid rectangle die gerendered word onder de kaart, vond ik mooier dan een wire rectangle
 renderSelector :: Coordinate -> Picture
 renderSelector coord = translate (convert (fst coord) width) (convert (snd coord) height) (rectangleSolid (fromIntegral scaling+10) (fromIntegral scaling+10))
 
@@ -212,6 +213,7 @@ renderCards :: [Card] -> Picture
 renderCards cards = pictures [renderCard card | card <- cards]
 
 -- Render het speelveld.
+-- renderselector eerst zodat deze onder de kaart word gerendered
 render :: Board -> Picture
 render board = pictures [renderSelector (selector board), renderCards (cards board)]
 
