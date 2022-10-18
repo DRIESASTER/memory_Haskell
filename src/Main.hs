@@ -38,7 +38,7 @@ data Board = Board {
 
 -- Aantal kaarten op de x-as.
 width :: Int
-width = 3
+width = 4
 
 -- Aantal kaarten op de y-as.
 height :: Int
@@ -122,11 +122,11 @@ generateColors n = [generateColor (fromIntegral x) | x <- [0,(div 360 n)..360]]
 
 -- Genereer een lijst van n kaarten (n/2 kleurenparen).
 generateShuffledCards :: Int -> [Card]
-generateShuffledCards n = shuffleList [Card {cardCoordinate = coords!!x, cardColor = generateColors (div n 2 + 1)!! div x 2 , cardStatus = Hidden} | x <- [0..(n-1)]] where coords = generateCoords
+generateShuffledCards n = [Card {cardCoordinate = coords!!x, cardColor = generateColors (div n 2 + 1)!! div x 2 , cardStatus = Hidden} | x <- [0..(n-1)]] where coords = generateCoords
 
 -- genereerd lijst van coordinaten
 generateCoords ::[Coordinate]
-generateCoords = take amountOfCards [(x,y) | x <- [0..(width-1)], y <- [0..(height-1)]]
+generateCoords = shuffleList $ take amountOfCards [(x,y) | x <- [0..(width-1)], y <- [0..(height-1)]]
 
 -- Controleer of een positie op het spelbord een kaart bevat.
 hasCard :: Coordinate -> Bool
