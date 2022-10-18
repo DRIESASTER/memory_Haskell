@@ -1,3 +1,4 @@
+-- selector start linksonder
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
@@ -38,7 +39,7 @@ data Board = Board {
 
 -- Aantal kaarten op de x-as.
 width :: Int
-width = 4
+width = 3
 
 -- Aantal kaarten op de y-as.
 height :: Int
@@ -101,13 +102,11 @@ match card1 card2 = cardColor card1 == cardColor card2
 -- Wanneer een kaart gevonden is, wordt deze teruggegeven. Anders wordt
 -- een error teruggegeven.
 
-
 find :: Coordinate -> [Card] -> Card
 find target cards
     | null cards = error "Card not found"
     | cardCoordinate (head cards) == target = head cards
     | otherwise = find target (drop 1 cards)
-
 
 -- Geef een permutatie van een gegeven lijst terug.
 -- Hint: Kijk zeker eens naar de System.Random en 
