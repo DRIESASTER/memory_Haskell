@@ -38,7 +38,7 @@ data Board = Board {
 
 -- Aantal kaarten op de x-as.
 width :: Int
-width = 4
+width = 3
 
 -- Aantal kaarten op de y-as.
 height :: Int
@@ -142,8 +142,9 @@ canMove coord direction = hasCard (fst coord+ fst direction, snd coord + snd dir
 -- Beweeg de selector in een gegeven richting.
 move :: Board -> Direction -> Board
 move board direction
-    | canMove (selector board) direction = board {selector = (fst (selector board) + fst direction, snd (selector board) + snd direction)}
+    | canMove (selector board) direction = board {selector = (fst coord + fst direction, snd coord + snd direction)}
     | otherwise = board
+        where coord = selector board
 
 -- Verander de status van een kaart op een gegeven positie 
 -- wanneer de posities overeenkomen.
@@ -156,13 +157,13 @@ changeCard c s card
 -- kaarten. Deze functie geeft een lijst terug waar de status 
 -- van de kaart is aangepast naar `Shown`.
 showCard :: Coordinate -> [Card] -> [Card]
-showCard target cards= [card | card <- cards, cardCoordinate card /= target] ++ [changeCard target Shown $ find target cards]
+showCard target = map (changeCard target Shown)
 
 -- Verander de status van een enkele kaart in een reeks van 
 -- kaarten. Deze functie geeft een lijst terug waar de status 
 -- van de kaart is aangepast naar `Hidden`.
 hideCard :: Coordinate -> [Card] -> [Card]
-hideCard target cards= [card | card <- cards, cardCoordinate card /= target] ++ [changeCard target Hidden $ find target cards]
+hideCard target = map (changeCard target Hidden)
 
 -- Draai de kaart op een gegeven positie op het bord om 
 -- als deze nog niet eerder werd omgedraaid.
@@ -201,10 +202,10 @@ renderSelector coord = translate (convert (fst coord) width) (convert (snd coord
 -- Render een kaart.
 renderCard :: Card -> Picture
 renderCard card
-    | cardStatus card == Hidden = translate coord1 coord2 (renderColoredSquare scaling (greyN 0.35))
-    | otherwise = translate coord1 coord2 (renderColoredSquare scaling (cardColor card))
-        where   coord1 = convert (fst (cardCoordinate card)) width
-                coord2 = convert (snd (cardCoordinate card)) height
+    | cardStatus card == Hidden = translate x y (renderColoredSquare scaling (greyN 0.35))
+    | otherwise = translate x y (renderColoredSquare scaling (cardColor card))
+        where   x = convert (fst (cardCoordinate card)) width
+                y = convert (snd (cardCoordinate card)) height
 
 -- Render alle kaarten.
 renderCards :: [Card] -> Picture
