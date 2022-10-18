@@ -104,7 +104,7 @@ match card1 card2 = cardColor card1 == cardColor card2
 
 find :: Coordinate -> [Card] -> Card
 find target cards
-    | null cards = error "not found"
+    | null cards = error "Card not found"
     | cardCoordinate (head cards) == target = head cards
     | otherwise = find target (drop 1 cards)
 
@@ -130,14 +130,9 @@ generateCoords = take amountOfCards [(x,y) | x <- [0..(width-1)], y <- [0..(heig
 
 -- Controleer of een positie op het spelbord een kaart bevat.
 hasCard :: Coordinate -> Bool
-hasCard (x, y) = hasCardSub (x, y) (cards initBoard)
-
---recursieve methode om te checken of kaart in lijst zit
-hasCardSub :: Coordinate -> [Card] -> Bool
-hasCardSub (x, y) l
-    | length l == 0 = False
-    | cardCoordinate (head l) == (x, y) = True
-    | otherwise = hasCardSub (x, y) (drop 1 l)
+hasCard (x, y)
+    | not (null ([ card | card <- cards initBoard, cardCoordinate card == (x, y)])) = True
+    | otherwise = False
 
 -- Controleer of de selector vanaf een gegeven locatie in een 
 -- gegeven richting kan bewegen.
@@ -147,7 +142,7 @@ canMove coord direction = hasCard (fst coord+ fst direction, snd coord + snd dir
 -- Beweeg de selector in een gegeven richting.
 move :: Board -> Direction -> Board
 move board direction
-    | canMove (selector board) direction == True = board {selector = (fst (selector board) + fst direction, snd (selector board) + snd direction)}
+    | canMove (selector board) direction = board {selector = (fst (selector board) + fst direction, snd (selector board) + snd direction)}
     | otherwise = board
 
 -- Verander de status van een kaart op een gegeven positie 
@@ -176,11 +171,6 @@ flipCard target board
     | cardStatus (find target (cards board)) == Hidden = board{cards = showCard target (cards board), turned = turned board ++ [find target (cards board)]}
     | otherwise = board
 
-
-flipMultipleCards :: [Coordinate] -> Board -> Board
-flipMultipleCards [c1] board = flipCard c1 board
-flipMultipleCards l board = flipMultipleCards (drop 1 l) (flipCard (head l) board)
-
 -- Reset de laatste omgedraaide kaarten terug naar de `Hidden` status.
 resetTurned :: Board -> Board
 resetTurned board = board { turned = [], cards = hideCard (cardCoordinate (turned board!!1)) (hideCard (cardCoordinate(head (turned board))) (cards board))}
@@ -197,7 +187,7 @@ nextBoard b@Board{ turned = [c1, c2] }
 -- Zet een positie op het bord om naar een positie op het scherm.
 -- Hint: hou zeker rekening met het coordinatensysteem van Gloss.
 convert :: Int -> Int -> Float
-convert location axis = (fromIntegral(location) - fromIntegral (axis-1) / 2) * (fromIntegral(scaling+10))
+convert location axis = (fromIntegral location - fromIntegral (axis-1) / 2) * fromIntegral(scaling+10)
 
 -- Render een vierkant met een gegeven kleur en grootte.
 renderColoredSquare :: Int -> Color -> Picture
